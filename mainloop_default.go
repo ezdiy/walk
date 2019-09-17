@@ -16,7 +16,11 @@ func (fb *FormBase) mainLoop() int {
 	defer win.GlobalFree(win.HGLOBAL(unsafe.Pointer(msg)))
 
 	for fb.hWnd != 0 {
-		switch win.GetMessage(msg, 0, 0, 0) {
+		var b win.BOOL
+		RunUnlocked(func(){
+			b = win.GetMessage(msg, 0, 0, 0)
+		})
+		switch b {
 		case 0:
 			return int(msg.WParam)
 
@@ -36,7 +40,8 @@ func (fb *FormBase) mainLoop() int {
 			win.DispatchMessage(msg)
 		}
 
-		runSynchronized()
+		// Prevent deadlock
+		RunUnlocked(runSynchronized)
 	}
 
 	return 0

@@ -553,13 +553,13 @@ func AppendToWalkInit(fn func()) {
 	walkInit = append(walkInit, fn)
 }
 
-// InitWindow initializes a window.
-//
-// Widgets should be initialized using InitWidget instead.
-func InitWindow(window, parent Window, className string, style, exStyle uint32) error {
+// External initialization of global state. Lock the OS thread too if so requested.
+func Init(lock bool) {
 	// We can't use sync.Once, because tooltip.go's init also calls InitWindow, so we deadlock.
 	if atomic.CompareAndSwapUint32(&initedWalk, 0, 1) {
-		runtime.LockOSThread()
+		if lock {
+			runtime.LockOSThread()
+		}
 
 		var initCtrls win.INITCOMMONCONTROLSEX
 		initCtrls.DwSize = uint32(unsafe.Sizeof(initCtrls))
@@ -571,7 +571,13 @@ func InitWindow(window, parent Window, className string, style, exStyle uint32) 
 			fn()
 		}
 	}
+}
 
+// InitWindow initializes a window.
+//
+// Widgets should be initialized using InitWidget instead.
+func InitWindow(window, parent Window, className string, style, exStyle uint32) error {
+	Init(true)
 	wb := window.AsWindowBase()
 	wb.window = window
 	wb.enabled = true
