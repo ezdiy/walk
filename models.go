@@ -621,6 +621,24 @@ type TreeModelBase struct {
 	itemChangedPublisher  TreeItemEventPublisher
 	itemInsertedPublisher TreeItemEventPublisher
 	itemRemovedPublisher  TreeItemEventPublisher
+
+	roots	[]TreeItem
+}
+
+func (t *TreeModelBase) RootCount() int {
+	return len(t.roots)
+}
+
+func (tmb *TreeModelBase) RootAt(i int) TreeItem {
+	return tmb.roots[i]
+}
+
+func (tmb *TreeModelBase) AddRoot(s string) (root *TreeItemBase) {
+	root = &TreeItemBase{
+		text:s,
+	}
+	tmb.roots = append(tmb.roots, root)
+	return
 }
 
 func (tmb *TreeModelBase) LazyPopulation() bool {
@@ -657,4 +675,39 @@ func (tmb *TreeModelBase) PublishItemInserted(item TreeItem) {
 
 func (tmb *TreeModelBase) PublishItemRemoved(item TreeItem) {
 	tmb.itemRemovedPublisher.Publish(item)
+}
+
+type TreeItemBase struct {
+	parent 		TreeItem
+	text 		string
+	children	[]TreeItem
+}
+
+func (tib *TreeItemBase) Text() string {
+	return tib.text
+}
+
+func (tib *TreeItemBase) Parent() TreeItem {
+	return tib.parent
+}
+
+func (tib *TreeItemBase) ChildCount() int {
+	return len(tib.children)
+}
+
+func (tib *TreeItemBase) ChildAt(index int) TreeItem {
+	return tib.children[index]
+}
+
+func (tib *TreeItemBase) AddChild(s string) (r *TreeItemBase) {
+	r = &TreeItemBase{
+		text: s,
+		parent: tib,
+	}
+	tib.children = append(tib.children, r)
+	return
+}
+
+func (tib *TreeItemBase) End() (r *TreeItemBase) {
+	return tib.parent.(*TreeItemBase)
 }
