@@ -14,7 +14,9 @@ import (
 
 // #include <windows.h>
 //
-// extern void shimRunSynchronized(void);
+// extern void shimRunSynchronized(uintptr_t);
+// extern void shimLockThread();
+// extern void shimUnlockThread();
 // extern unsigned char shimHandleKeyDown(uintptr_t fb, uintptr_t m);
 //
 // static int mainloop(uintptr_t handle_ptr, uintptr_t fb_ptr)
@@ -24,7 +26,9 @@ import (
 //     int r;
 //
 //     while (*hwnd) {
+//         shimUnlockThread();
 //         r = GetMessage(&m, NULL, 0, 0);
+//         shimLockThread();
 //         if (!r)
 //             return m.wParam;
 //         else if (r < 0)
@@ -40,6 +44,16 @@ import (
 //     return 0;
 // }
 import "C"
+
+//export shimUnlockThread
+func shimUnlockThread() {
+	MsgLoopMutex.Unlock()
+}
+
+//export shimLockThread
+func shimLockThread() {
+	MsgLoopMutex.Lock()
+}
 
 //export shimHandleKeyDown
 func shimHandleKeyDown(fb uintptr, msg uintptr) bool {
