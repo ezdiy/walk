@@ -16,6 +16,8 @@ import (
 	"time"
 )
 
+//go:generate windres resources.rc -o resources.syso
+
 type Foo struct {
 	Index   int
 	Bar     string
@@ -423,6 +425,7 @@ func (mw *MyMainWindow) specialAction_Triggered() {
 }
 
 func main() {
+	log.Println("starting")
 	var wg sync.WaitGroup
 	// to set up a wndproc
 	walk.Init(true)
