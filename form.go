@@ -532,13 +532,14 @@ func (fb *FormBase) SetIcon(icon Image) error {
 	var hIconSmall, hIconBig uintptr
 
 	if icon != nil {
-		smallIcon, err := iconCache.Icon(icon, fb.DPI())
+		dpi := fb.DPI()
+		smallIcon, err := iconCache.Icon(icon, dpi)
 		if err != nil {
 			return err
 		}
-		hIconSmall = uintptr(smallIcon.handleForDPI(fb.DPI()))
+		hIconSmall = uintptr(smallIcon.handleForDPI(dpi))
 
-		bigDPI := int(48.0 / float64(icon.Size().Width) * 96.0)
+		bigDPI := scaleInt(dpi, float64(win.GetSystemMetrics(win.SM_CYICON))/float64(win.GetSystemMetrics(win.SM_CYSMICON)))
 		bigIcon, err := iconCache.Icon(icon, bigDPI)
 		if err != nil {
 			return err
@@ -657,7 +658,7 @@ func (fb *FormBase) RestoreState() error {
 
 	if layout := fb.Layout(); layout != nil && fb.fixedSize() {
 		layoutItem := CreateLayoutItemsForContainer(fb)
-		minSize := fb.sizeFromClientSizePixels(layoutItem.MinSize())
+		minSize := fb.sizeFromClientSizePixels(layoutItem.MinSize()) // TODO: MinSize() returns 96dpi pixels
 
 		wp.RcNormalPosition.Right = wp.RcNormalPosition.Left + int32(minSize.Width) - 1
 		wp.RcNormalPosition.Bottom = wp.RcNormalPosition.Top + int32(minSize.Height) - 1

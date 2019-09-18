@@ -49,10 +49,13 @@ func NewGroupBox(parent Container) (*GroupBox, error) {
 		}
 	}()
 
+	size := Size{80, 24}.From96DPI(parent.DPI())
+
 	gb.hWndGroupBox = win.CreateWindowEx(
 		0, syscall.StringToUTF16Ptr("BUTTON"), nil,
 		win.WS_CHILD|win.WS_VISIBLE|win.BS_GROUPBOX,
-		0, 0, 80, 24, gb.hWnd, 0, 0, nil)
+		0, 0, int32(size.Width), int32(size.Height),
+		gb.hWnd, 0, 0, nil)
 	if gb.hWndGroupBox == 0 {
 		return nil, lastError("CreateWindowEx(BUTTON)")
 	}
@@ -129,7 +132,7 @@ func (gb *GroupBox) ClientBoundsPixels() Rectangle {
 	}
 
 	if gb.Checkable() {
-		s := createLayoutItemForWidget(gb.checkBox).(MinSizer).MinSize()
+		s := createLayoutItemForWidget(gb.checkBox).(MinSizer).MinSize() // TODO: MinSize() returns 96dpi pixels, we're in ...Pixels() member
 
 		cb.Y += s.Height
 		cb.Height -= s.Height
@@ -353,7 +356,7 @@ func (gb *GroupBox) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 			}
 
 			if gb.Checkable() {
-				s := createLayoutItemForWidget(gb.checkBox).(MinSizer).MinSize()
+				s := createLayoutItemForWidget(gb.checkBox).(MinSizer).MinSize() // TODO: MinSize() returns 96dpi pixels, we're using it in SetBoundsPixels()
 				var x int
 				if l := gb.Layout(); l != nil {
 					x = l.Margins().HNear

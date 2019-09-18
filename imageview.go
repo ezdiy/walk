@@ -218,13 +218,15 @@ func (iv *ImageView) drawImage(canvas *Canvas, _ Rectangle) error {
 				scale = 1.0
 			}
 
-			bounds.Width = int(float64(s.Width) * scale)
-			bounds.Height = int(float64(s.Height) * scale)
+			s = scaleSize(s, scale)
+
+			bounds.Width = s.Width
+			bounds.Height = s.Height
 			bounds.X = margin + (cb.Width-bounds.Width)/2
 			bounds.Y = margin + (cb.Height-bounds.Height)/2
 		}
 
-		return canvas.DrawImageStretched(iv.image, RectangleTo96DPI(bounds, iv.DPI()))
+		return canvas.DrawImageStretched(iv.image, bounds.To96DPI(iv.DPI()))
 
 	case ImageViewModeCorner, ImageViewModeCenter:
 		win.IntersectClipRect(canvas.hdc, int32(margin), int32(margin), int32(cb.Width+margin), int32(cb.Height+margin))
@@ -242,7 +244,7 @@ func (iv *ImageView) drawImage(canvas *Canvas, _ Rectangle) error {
 		pos.Y = margin + (cb.Height-s.Height)/2
 	}
 
-	return canvas.DrawImage(iv.image, PointTo96DPI(pos, iv.DPI()))
+	return canvas.DrawImage(iv.image, pos.To96DPI(iv.DPI()))
 }
 
 func (iv *ImageView) CreateLayoutItem(ctx *LayoutContext) LayoutItem {
@@ -257,6 +259,7 @@ func (iv *ImageView) CreateLayoutItem(ctx *LayoutContext) LayoutItem {
 	if iv.mode == ImageViewModeIdeal {
 		if iv.image != nil {
 			m2 := iv.IntFrom96DPI(iv.margin96dpi) * 2
+			// TODO: If image is Bitmap, Size() returns pixels. If image is Icon, Size() returns 96dpi pixels.
 			s := iv.SizeFrom96DPI(iv.image.Size())
 			s.Width += m2
 			s.Height += m2

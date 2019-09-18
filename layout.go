@@ -62,6 +62,7 @@ func CreateLayoutItemsForContainerWithContext(container Container, ctx *LayoutCo
 	if widget, ok := container.(Widget); ok {
 		containerItem = widget.CreateLayoutItem(ctx).(ContainerLayoutItem)
 	} else {
+		// TODO: Possible nil pointer reference: layout may be nil.
 		containerItem = layout.CreateLayoutItem(ctx)
 	}
 
@@ -369,6 +370,23 @@ func applyLayoutResults(results []LayoutResult, stopwatch *stopwatch) error {
 
 type Margins struct {
 	HNear, VNear, HFar, VFar int
+}
+
+func (m Margins) From96DPI(dpi int) Margins {
+	return scaleMargins(m, float64(dpi)/96.0)
+}
+
+func (m Margins) To96DPI(dpi int) Margins {
+	return scaleMargins(m, 96.0/float64(dpi))
+}
+
+func scaleMargins(value Margins, scale float64) Margins {
+	return Margins{
+		HNear: scaleInt(value.HNear, scale),
+		VNear: scaleInt(value.VNear, scale),
+		HFar:  scaleInt(value.HFar, scale),
+		VFar:  scaleInt(value.VFar, scale),
+	}
 }
 
 func (m Margins) isZero() bool {
@@ -693,11 +711,11 @@ func (*greedyLayoutItem) LayoutFlags() LayoutFlags {
 }
 
 func (li *greedyLayoutItem) IdealSize() Size {
-	return SizeFrom96DPI(Size{100, 100}, li.ctx.dpi)
+	return Size{100, 100}.From96DPI(li.ctx.dpi)
 }
 
 func (li *greedyLayoutItem) MinSize() Size {
-	return SizeFrom96DPI(Size{50, 50}, li.ctx.dpi)
+	return Size{50, 50}.From96DPI(li.ctx.dpi)
 }
 
 type Geometry struct {

@@ -20,7 +20,7 @@ type Bitmap struct {
 	hBmp       win.HBITMAP
 	hPackedDIB win.HGLOBAL
 	size       Size
-	dpi        int
+	dpi        int // TODO: Unused
 }
 
 func NewBitmap(size Size) (*Bitmap, error) {
@@ -146,7 +146,7 @@ func NewBitmapFromImageWithSize(image Image, size Size) (*Bitmap, error) {
 	canvas.dpix = dpi
 	canvas.dpiy = dpi
 
-	size = SizeTo96DPI(size, dpi)
+	size = size.To96DPI(dpi)
 
 	if err := canvas.DrawImageStretched(image, Rectangle{0, 0, size.Width, size.Height}); err != nil {
 		return nil, err
@@ -260,6 +260,7 @@ func (bmp *Bitmap) Dispose() {
 }
 
 func (bmp *Bitmap) Size() Size {
+	// TODO: Should return size in 96dpi like Icon and PaintFuncImage do?
 	return bmp.size
 }
 

@@ -6,8 +6,32 @@
 
 package walk
 
+import "github.com/lxn/win"
+
 type Size struct {
 	Width, Height int
+}
+
+func (s Size) From96DPI(dpi int) Size {
+	return scaleSize(s, float64(dpi)/96.0)
+}
+
+func (s Size) To96DPI(dpi int) Size {
+	return scaleSize(s, 96.0/float64(dpi))
+}
+
+func scaleSize(value Size, scale float64) Size {
+	return Size{
+		Width:  scaleInt(value.Width, scale),
+		Height: scaleInt(value.Height, scale),
+	}
+}
+
+func (s Size) toSIZE() win.SIZE {
+	return win.SIZE{
+		int32(s.Width),
+		int32(s.Height),
+	}
 }
 
 func minSize(a, b Size) Size {
