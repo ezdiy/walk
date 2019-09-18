@@ -13,6 +13,8 @@ import (
 type WebView struct {
 	// Window
 
+	AddStyle           uint32
+	SubStyle           uint32
 	Background         Brush
 	ContextMenuItems   []MenuItem
 	DoubleBuffering    bool

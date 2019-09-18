@@ -45,6 +45,13 @@ type ToolButton struct {
 	RowSpan            int
 	StretchFactor      int
 
+	// Style
+
+	AddStyle           uint32
+	SubStyle           uint32
+	AddStyleEx         uint32
+	SubStyleEx         uint32
+	
 	// Button
 
 	Image     Property

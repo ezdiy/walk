@@ -423,6 +423,8 @@ type Window interface {
 	// RootWidgets like *MainWindow or *Dialog and relative to the parent for
 	// child Windows.
 	YPixels() int
+
+	StyleOverride([4]uint32) [4]uint32
 }
 
 type calcTextSizeInfo struct {
@@ -473,6 +475,9 @@ type WindowBase struct {
 	visible                   bool
 	enabled                   bool
 	accPropServices           *win.IAccPropServices
+
+	// HACK
+	styleOverride             [4]uint32
 }
 
 var (
@@ -730,6 +735,13 @@ func InitWrapperWindow(window Window) error {
 	}
 
 	return nil
+}
+
+// HACK: We exploit that window is thread specific.
+func (cb *WindowBase) StyleOverride(n [4]uint32) (old [4]uint32) {
+	old = cb.styleOverride
+	cb.styleOverride = n
+	return
 }
 
 func (wb *WindowBase) MustRegisterProperty(name string, property Property) {

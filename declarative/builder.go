@@ -369,7 +369,18 @@ func (b *Builder) InitWidget(d Widget, w walk.Window, customInit func() error) e
 
 		if val := b.widgetValue.FieldByName("Children"); val.IsValid() {
 			for _, child := range val.Interface().([]Widget) {
-				if err := child.Create(b); err != nil {
+				var ovr [4]uint32
+				// HACK
+				wd := reflect.ValueOf(child)
+				for i, n := range []string{"AddStyle","SubStyle","AddStyleEx", "SubStyleEx"} {
+					if fa := wd.FieldByName(n); fa.IsValid() {
+						ovr[i] = fa.Interface().(uint32)
+					}
+				}
+				b.Parent().StyleOverride(ovr)
+				err := child.Create(b)
+				b.Parent().StyleOverride([4]uint32{})
+				if err != nil {
 					return err
 				}
 			}
