@@ -50,14 +50,18 @@ type Dialog struct {
 }
 
 func NewDialog(owner Form) (*Dialog, error) {
-	return newDialogWithStyle(owner, win.WS_THICKFRAME)
+	return NewDialogWithStyle(owner, win.WS_THICKFRAME)
 }
 
 func NewDialogWithFixedSize(owner Form) (*Dialog, error) {
-	return newDialogWithStyle(owner, 0)
+	return NewDialogWithStyle(owner, 0)
 }
 
-func newDialogWithStyle(owner Form, style uint32) (*Dialog, error) {
+func NewDialogWithStyle(owner Form, style uint32) (*Dialog, error) {
+	return NewDialogWithStyleEx(owner, style|win.WS_CAPTION|win.WS_SYSMENU, 0)
+}
+
+func NewDialogWithStyleEx(owner Form, style, exStyle uint32) (*Dialog, error) {
 	dlg := &Dialog{
 		FormBase: FormBase{
 			owner: owner,
@@ -68,8 +72,8 @@ func newDialogWithStyle(owner Form, style uint32) (*Dialog, error) {
 		dlg,
 		owner,
 		dialogWindowClass,
-		win.WS_CAPTION|win.WS_SYSMENU|style,
-		0); err != nil {
+		style,
+		exStyle); err != nil {
 		return nil, err
 	}
 

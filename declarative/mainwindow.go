@@ -6,7 +6,10 @@
 
 package declarative
 
-import "github.com/lxn/walk"
+import (
+	"github.com/lxn/walk"
+	"github.com/lxn/win"
+)
 
 type MainWindow struct {
 	// Window
@@ -66,7 +69,8 @@ type MainWindow struct {
 }
 
 func (mw MainWindow) Create() error {
-	w, err := walk.NewMainWindow()
+	style, exStyle := walk.ApplyStyleOverrides(loadStyleOverrides(mw), win.WS_OVERLAPPEDWINDOW, win.WS_EX_CONTROLPARENT)
+	w, err := walk.NewMainWindowWithNameStyleEx("", style, exStyle)
 	if err != nil {
 		return err
 	}

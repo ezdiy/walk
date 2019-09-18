@@ -107,16 +107,8 @@ func InitWidget(widget Widget, parent Window, className string, style, exStyle u
 		return newError("parent cannot be nil")
 	}
 
-	// HACK: Pull style temporarily stored in the container window.
-	if cont, ok := parent.(Container); ok {
-		ov := cont.StyleOverride([4]uint32{})
-		style |= ov[0]
-		style &= ^ov[1]
-		exStyle |= ov[2]
-		exStyle &= ^ov[3]
-	}
-
-	if err := InitWindow(widget, parent, className, style|win.WS_CHILD, exStyle); err != nil {
+	style, exStyle = ApplyStyleOverrides(parent.AsWindowBase().StyleOverride([4]uint32{}), style|win.WS_CHILD, exStyle)
+	if err := InitWindow(widget, parent, className, style, exStyle); err != nil {
 		return err
 	}
 
