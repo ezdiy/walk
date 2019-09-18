@@ -41,6 +41,13 @@ type Dialog struct {
 	Layout     Layout
 	Children   []Widget
 
+	// Style
+
+	AddStyle           uint32
+	SubStyle           uint32
+	AddStyleEx         uint32
+	SubStyleEx         uint32
+
 	// Form
 
 	Expressions func() map[string]walk.Expression

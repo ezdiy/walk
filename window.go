@@ -423,6 +423,8 @@ type Window interface {
 	// RootWidgets like *MainWindow or *Dialog and relative to the parent for
 	// child Windows.
 	YPixels() int
+
+	StyleOverride([4]uint32) [4]uint32
 }
 
 type calcTextSizeInfo struct {
@@ -473,6 +475,9 @@ type WindowBase struct {
 	visible                   bool
 	enabled                   bool
 	accPropServices           *win.IAccPropServices
+
+	// HACK
+	styleOverride             [4]uint32
 }
 
 var (
@@ -553,13 +558,13 @@ func AppendToWalkInit(fn func()) {
 	walkInit = append(walkInit, fn)
 }
 
-// InitWindow initializes a window.
-//
-// Widgets should be initialized using InitWidget instead.
-func InitWindow(window, parent Window, className string, style, exStyle uint32) error {
+// External initialization of global state. Lock the OS thread too if so requested.
+func Init(lock bool) {
 	// We can't use sync.Once, because tooltip.go's init also calls InitWindow, so we deadlock.
 	if atomic.CompareAndSwapUint32(&initedWalk, 0, 1) {
-		runtime.LockOSThread()
+		if lock {
+			runtime.LockOSThread()
+		}
 
 		var initCtrls win.INITCOMMONCONTROLSEX
 		initCtrls.DwSize = uint32(unsafe.Sizeof(initCtrls))
@@ -571,7 +576,13 @@ func InitWindow(window, parent Window, className string, style, exStyle uint32) 
 			fn()
 		}
 	}
+}
 
+// InitWindow initializes a window.
+//
+// Widgets should be initialized using InitWidget instead.
+func InitWindow(window, parent Window, className string, style, exStyle uint32) error {
+	Init(true)
 	wb := window.AsWindowBase()
 	wb.window = window
 	wb.enabled = true
@@ -730,6 +741,13 @@ func InitWrapperWindow(window Window) error {
 	}
 
 	return nil
+}
+
+// HACK: We exploit that window is thread specific.
+func (cb *WindowBase) StyleOverride(n [4]uint32) (old [4]uint32) {
+	old = cb.styleOverride
+	cb.styleOverride = n
+	return
 }
 
 func (wb *WindowBase) MustRegisterProperty(name string, property Property) {

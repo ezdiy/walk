@@ -33,6 +33,13 @@ type MainWindow struct {
 	ToolTipText        Property
 	Visible            Property
 
+	// Style
+
+	AddStyle           uint32
+	SubStyle           uint32
+	AddStyleEx         uint32
+	SubStyleEx         uint32
+
 	// Container
 
 	Children   []Widget

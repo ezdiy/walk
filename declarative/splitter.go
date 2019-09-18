@@ -34,6 +34,13 @@ type HSplitter struct {
 	ToolTipText        Property
 	Visible            Property
 
+	// Style
+
+	AddStyle           uint32
+	SubStyle           uint32
+	AddStyleEx         uint32
+	SubStyleEx         uint32
+
 	// Widget
 
 	Alignment          Alignment2D
