@@ -8,6 +8,7 @@ package declarative
 
 import (
 	"github.com/lxn/walk"
+	"github.com/lxn/win"
 )
 
 type Dialog struct {
@@ -68,11 +69,13 @@ func (d Dialog) Create(owner walk.Form) error {
 	var w *walk.Dialog
 	var err error
 
-	if d.FixedSize {
-		w, err = walk.NewDialogWithFixedSize(owner)
-	} else {
-		w, err = walk.NewDialog(owner)
+	style, exStyle := uint32(win.WS_CAPTION|win.WS_SYSMENU), uint32(0)
+	if !d.FixedSize {
+		style |= win.WS_THICKFRAME
 	}
+	style, exStyle = walk.ApplyStyleOverrides(loadStyleOverrides(d), style, exStyle)
+	w, err = walk.NewDialogWithStyleEx(owner, style, exStyle)
+
 	if err != nil {
 		return err
 	}

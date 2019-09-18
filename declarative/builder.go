@@ -369,17 +369,10 @@ func (b *Builder) InitWidget(d Widget, w walk.Window, customInit func() error) e
 
 		if val := b.widgetValue.FieldByName("Children"); val.IsValid() {
 			for _, child := range val.Interface().([]Widget) {
-				var ovr [4]uint32
-				// HACK
-				wd := reflect.ValueOf(child)
-				for i, n := range []string{"AddStyle","SubStyle","AddStyleEx", "SubStyleEx"} {
-					if fa := wd.FieldByName(n); fa.IsValid() {
-						ovr[i] = fa.Interface().(uint32)
-					}
-				}
-				b.Parent().StyleOverride(ovr)
+				wb := b.Parent().AsWindowBase()
+				wb.StyleOverride(loadStyleOverrides(child))
 				err := child.Create(b)
-				b.Parent().StyleOverride([4]uint32{})
+				wb.StyleOverride([4]uint32{})
 				if err != nil {
 					return err
 				}
@@ -764,4 +757,14 @@ type boolExpression struct {
 func (be *boolExpression) Satisfied() bool {
 	satisfied, ok := be.Value().(bool)
 	return ok && satisfied
+}
+
+func loadStyleOverrides(from interface{}) (ovr [4] uint32) {
+	wd := reflect.ValueOf(from)
+	for i, n := range []string{"AddStyle","SubStyle","AddStyleEx", "SubStyleEx"} {
+		if fa := wd.FieldByName(n); fa.IsValid() {
+			ovr[i] = fa.Interface().(uint32)
+		}
+	}
+	return
 }

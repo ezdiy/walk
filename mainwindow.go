@@ -35,6 +35,10 @@ func NewMainWindow() (*MainWindow, error) {
 }
 
 func NewMainWindowWithName(name string) (*MainWindow, error) {
+	return NewMainWindowWithNameStyleEx(name, win.WS_OVERLAPPEDWINDOW, win.WS_EX_CONTROLPARENT)
+}
+
+func NewMainWindowWithNameStyleEx(name string, style, exStyle uint32) (*MainWindow, error) {
 	mw := new(MainWindow)
 	mw.SetName(name)
 
@@ -42,8 +46,8 @@ func NewMainWindowWithName(name string) (*MainWindow, error) {
 		mw,
 		nil,
 		mainWindowWindowClass,
-		win.WS_OVERLAPPEDWINDOW,
-		win.WS_EX_CONTROLPARENT); err != nil {
+		style,
+		exStyle); err != nil {
 
 		return nil, err
 	}

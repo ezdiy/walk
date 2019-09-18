@@ -592,6 +592,7 @@ func InitWindow(window, parent Window, className string, style, exStyle uint32) 
 
 	var hwndParent win.HWND
 	var hMenu win.HMENU
+
 	if parent != nil {
 		hwndParent = parent.Handle()
 
@@ -615,7 +616,7 @@ func InitWindow(window, parent Window, className string, style, exStyle uint32) 
 			exStyle,
 			syscall.StringToUTF16Ptr(className),
 			windowName,
-			style|win.WS_CLIPSIBLINGS,
+			style,
 			win.CW_USEDEFAULT,
 			win.CW_USEDEFAULT,
 			win.CW_USEDEFAULT,
@@ -743,10 +744,17 @@ func InitWrapperWindow(window Window) error {
 	return nil
 }
 
-// HACK: We exploit that window is thread specific.
-func (cb *WindowBase) StyleOverride(n [4]uint32) (old [4]uint32) {
-	old = cb.styleOverride
-	cb.styleOverride = n
+func ApplyStyleOverrides(ov [4]uint32, style, exStyle uint32) (uint32, uint32) {
+	exStyle &= ^ov[3]
+	exStyle |= ov[2]
+	style &= ^ov[1]
+	style |= ov[0]
+	return style, exStyle
+}
+
+// Set up a new style override, and return the old one.
+func (wb *WindowBase) StyleOverride(n [4]uint32) (old [4]uint32) {
+	old, wb.styleOverride = wb.styleOverride, n
 	return
 }
 
