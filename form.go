@@ -30,9 +30,8 @@ var (
 		funcs []func()
 	}
 
-	syncMsgId                  uint32
-	taskbarButtonCreatedMsgId  uint32
-	syncApplyLayoutResultsArgs applyLayoutResultsArgs
+	syncMsgId                 uint32
+	taskbarButtonCreatedMsgId uint32
 )
 
 func init() {
@@ -40,40 +39,6 @@ func init() {
 		syncMsgId = win.RegisterWindowMessage(syscall.StringToUTF16Ptr("WalkSync"))
 		taskbarButtonCreatedMsgId = win.RegisterWindowMessage(syscall.StringToUTF16Ptr("TaskbarButtonCreated"))
 	})
-}
-
-type applyLayoutResultsArgs struct {
-	results   []LayoutResult
-	stopwatch *stopwatch
-}
-
-func synchronizeApplyLayoutResults(results []LayoutResult, stopwatch *stopwatch) {
-	syncFuncs.m.Lock()
-	syncApplyLayoutResultsArgs = applyLayoutResultsArgs{results, stopwatch}
-	syncFuncs.m.Unlock()
-}
-
-func synchronize(f func()) {
-	syncFuncs.m.Lock()
-	syncFuncs.funcs = append(syncFuncs.funcs, f)
-	syncFuncs.m.Unlock()
-}
-
-func runSynchronized() {
-	// Clear the list of callbacks first to avoid deadlock
-	// if a callback itself calls Synchronize()...
-	syncFuncs.m.Lock()
-	alrArgs := syncApplyLayoutResultsArgs
-	syncApplyLayoutResultsArgs = applyLayoutResultsArgs{}
-	funcs := syncFuncs.funcs
-	syncFuncs.funcs = nil
-	syncFuncs.m.Unlock()
-	if len(alrArgs.results) > 0 {
-		applyLayoutResults(alrArgs.results, alrArgs.stopwatch)
-	}
-	for _, f := range funcs {
-		f()
-	}
 }
 
 type Form interface {
@@ -602,7 +567,7 @@ func (fb *FormBase) Hide() {
 func (fb *FormBase) Show() {
 	fb.proposedSize = maxSize(fb.minSize, fb.SizePixels())
 
-	if p, ok := fb.window.(Persistable); ok && p.Persistent() && appSingleton.settings != nil {
+	if p, ok := fb.window.(Persistable); ok && p.Persistent() && App().Settings() != nil {
 		p.RestoreState()
 	}
 
@@ -610,7 +575,7 @@ func (fb *FormBase) Show() {
 }
 
 func (fb *FormBase) close() error {
-	if p, ok := fb.window.(Persistable); ok && p.Persistent() && appSingleton.settings != nil {
+	if p, ok := fb.window.(Persistable); ok && p.Persistent() && App().Settings() != nil {
 		p.SaveState()
 	}
 
@@ -746,14 +711,14 @@ func (fb *FormBase) WndProc(hwnd win.HWND, msg uint32, wParam, lParam uintptr) u
 				win.SetFocus(fb.prevFocusHWnd)
 			}
 
-			appSingleton.activeForm = fb.window.(Form)
+			fb.group.SetActiveForm(fb.window.(Form))
 
 			fb.activatingPublisher.Publish()
 
 		case win.WA_INACTIVE:
 			fb.prevFocusHWnd = win.GetFocus()
 
-			appSingleton.activeForm = nil
+			fb.group.SetActiveForm(nil)
 
 			fb.deactivatingPublisher.Publish()
 		}
